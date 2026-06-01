@@ -1,0 +1,16 @@
+[Unit]
+Description=Dark Wish Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/WishesBot/dark-wish-bot
+EnvironmentFile=/home/ec2-user/WishesBot/dark-wish-bot/.env
+ExecStart=/home/ec2-user/WishesBot/dark-wish-bot/.venv/bin/python bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
