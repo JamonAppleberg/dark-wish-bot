@@ -61,8 +61,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "Привет! Я буду каждый день присылать тебе пожелание с чёрным юмором "
             f"и сарказмом (обычно в {DAILY_TIME}, {TIMEZONE}).\n\n"
             "Команды:\n"
-            "/wish — получить пожелание прямо сейчас\n"
-            "/compliment — саркастичный комплимент\n"
+            "/wish — подкол-пожелание на день\n"
+            "/compliment — подкол лично тебе\n"
             "/myid — узнать свой Telegram ID\n"
             "/stop — отписаться от рассылки"
         )
