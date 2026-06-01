@@ -204,12 +204,10 @@ def generate_wish() -> str:
 
 def generate_compliment(name: Optional[str] = None) -> str:
     """Саркастичный комплимент, опционально с именем."""
-    display_name = name or "ты"
-
-    if random.random() < 0.6:
-        body = random.choice(COMPLIMENT_CURATED)
+    if name and random.random() < 0.45:
+        body = random.choice(COMPLIMENT_TEMPLATES).format(name=name)
     else:
-        body = random.choice(COMPLIMENT_TEMPLATES).format(name=display_name)
+        body = random.choice(COMPLIMENT_CURATED)
 
     if random.random() < 0.3:
         return body
