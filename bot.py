@@ -63,6 +63,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "Команды:\n"
             "/wish — получить пожелание прямо сейчас\n"
             "/compliment — саркастичный комплимент\n"
+            "/myid — узнать свой Telegram ID\n"
             "/stop — отписаться от рассылки"
         )
     else:
@@ -83,6 +84,24 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def wish(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(generate_wish())
+
+
+async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    chat = update.effective_chat
+
+    if not user:
+        await update.message.reply_text("Не удалось определить пользователя.")
+        return
+
+    username = f"@{user.username}" if user.username else "не задан"
+    text = (
+        f"Твой Telegram ID: `{user.id}`\n"
+        f"Chat ID: `{chat.id}`\n"
+        f"Username: {username}\n\n"
+        "ID нужен для EXCLUDED_USER_ID в .env на сервере."
+    )
+    await update.message.reply_text(text, parse_mode="Markdown")
 
 
 async def compliment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -158,6 +177,7 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("stop", stop))
     app.add_handler(CommandHandler("wish", wish))
+    app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("compliment", compliment))
 
     daily_time = parse_daily_time(DAILY_TIME)
