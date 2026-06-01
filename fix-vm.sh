@@ -1,3 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+BOT_DIR="${1:-/home/ec2-user/WishesBot/dark-wish-bot}"
+PIP_MIRROR="-i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com"
+
+echo "==> Папка бота: $BOT_DIR"
+cd "$BOT_DIR"
+
+echo "==> Бэкап"
+ts=$(date +%s)
+cp -a bot.py "bot.py.bak.$ts" 2>/dev/null || true
+cp -a wishes.py "wishes.py.bak.$ts" 2>/dev/null || true
+cp -a .env ".env.bak.$ts" 2>/dev/null || true
+
+echo "==> Запись bot.py"
+cat > bot.py <<'EOF'
 #!/usr/bin/env python3
 """Telegram-бот с ежедневными саркастичными пожеланиями."""
 
@@ -177,9 +194,57 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # Python 3.14+ не создаёт event loop в main thread автоматически
     try:
         asyncio.get_event_loop()
     except RuntimeError:
         asyncio.set_event_loop(asyncio.new_event_loop())
     main()
+EOF
+
+echo "==> Правка wishes.py (Python 3.9)"
+python3 <<'PY'
+from pathlib import Path
+p = Path("wishes.py")
+t = p.read_text(encoding="utf-8")
+if "from typing import Optional" not in t:
+    t = t.replace("from datetime import date\n", "from datetime import date\nfrom typing import Optional\n")
+t = t.replace("name: str | None", "name: Optional[str]")
+p.write_text(t, encoding="utf-8")
+print("wishes.py ok")
+PY
+
+echo "==> .env"
+[[ -f .env ]] || cp .env.example .env
+grep -q '^PROXY_URL=' .env || echo 'PROXY_URL=socks5://127.0.0.1:10808' >> .env
+grep -q '^CONNECT_TIMEOUT=' .env || echo 'CONNECT_TIMEOUT=30' >> .env
+grep -q '^READ_TIMEOUT=' .env || echo 'READ_TIMEOUT=30' >> .env
+
+if ! grep -qE '^TELEGRAM_BOT_TOKEN=.+[^[:space:]]' .env; then
+  echo "!!! Добавь токен: nano .env"
+fi
+
+echo "==> requirements.txt для Python 3.9"
+cat > requirements.txt <<'EOF'
+python-telegram-bot[job-queue]==21.10
+python-dotenv==1.0.1
+EOF
+
+echo "==> venv + pip"
+[[ -d .venv ]] || python3 -m venv .venv
+# shellcheck disable=SC1091
+source .venv/bin/activate
+pip install --upgrade pip $PIP_MIRROR
+pip install --default-timeout=300 socksio typing_extensions exceptiongroup $PIP_MIRROR
+pip install --default-timeout=300 -r requirements.txt $PIP_MIRROR
+
+echo "==> Проверка прокси 10808"
+if (ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null) | grep -q 10808; then
+  echo "OK: порт 10808 слушается"
+else
+  echo "!!! Запусти прокси на 10808 (VPN/clash/v2ray)"
+fi
+
+echo
+echo "=== ГОТОВО ==="
+echo "nano .env          # если ещё не добавила токен"
+echo "python bot.py      # запуск"

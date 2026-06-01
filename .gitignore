@@ -4,3 +4,6 @@ __pycache__/
 .venv/
 venv/
 subscribers.json
+packages/
+bot-packages.tar.gz
+*.bak.*

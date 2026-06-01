@@ -2,6 +2,7 @@
 
 import random
 from datetime import date
+from typing import Optional
 
 WEEKDAYS = [
     "понедельник",
@@ -163,7 +164,7 @@ GENUINE_COMPLIMENTS = [
 ]
 
 
-def generate_compliment(name: str | None = None) -> str:
+def generate_compliment(name: Optional[str] = None) -> str:
     """Саркастичный комплимент, опционально с именем."""
     display_name = name or "ты"
 
@@ -176,7 +177,7 @@ def generate_compliment(name: str | None = None) -> str:
     return f"{intro}\n\n{body}"
 
 
-def generate_genuine_compliment(name: str | None = None) -> str:
+def generate_genuine_compliment(name: Optional[str] = None) -> str:
     """Настоящий комплимент для исключённого пользователя."""
     body = random.choice(GENUINE_COMPLIMENTS)
     if name:
